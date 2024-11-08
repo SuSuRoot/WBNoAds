@@ -1,35 +1,24 @@
 #import <UIKit/UIKit.h>
+#import <objc/runtime.h>
 
-@interface WBAdSdkFlashAdView : UIView
-- (void)closeAd:(unsigned long long)arg1;
+@interface SBIconView : UIView
+- (id)icon;
+- (void)_openQuickActions;
 @end
 
-%hook WBAdSdkFlashAdView
+%hook SBIconView
 
-- (void)didMoveToSuperview {
-    %log;
-    %orig;
+- (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
+    UITouch *touch = [touches anyObject];
+    CGPoint currentLocation = [touch locationInView:self];
+    CGPoint previousLocation = [touch previousLocationInView:self];
 
-    if (self.superview) {
-        [self setHidden:YES];
-        [self closeAd:2];
+    if (currentLocation.y < previousLocation.y) {
+        // 检测到上划手势
+        [self _openQuickActions];
+    } else {
+        %orig;
     }
 }
 
 %end
-
-
-
-
-%hook WBReadRedPacketView
-- (id)initWithFrame:(struct CGRect)arg1 completeCount:(long long)arg2 {
-    return 0;
-}
-%end
-
-%hook WBNavLotteryButton
-- (id)initWithFrame:(struct CGRect)arg1 {
-    return 0;
-}
-%end
-
